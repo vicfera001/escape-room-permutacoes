@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escape Room: O Código das Permutações</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap');
+    
+    :root {
+      --primary: #8e44ad;
+      --secondary: #3498db;
+      --dark: #2c3e50;
+      --danger: #e74c3c;
+      --success: #2ecc71;
+      --light: #ecf0f1;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                  url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') no-repeat center center fixed;
+      background-size: cover;
+      color: var(--light);
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: rgba(44, 62, 80, 0.9);
+      border-radius: 15px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .container::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
+      border: 2px solid var(--secondary);
+      border-radius: 20px;
+      animation: borderGlow 3s infinite alternate;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    h1, h2 {
+      font-family: 'Press Start 2P', cursive;
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+    }
+    
+    h1 {
+      color: var(--success);
+      font-size: 2rem;
+      margin: 20px 0;
+      animation: titleGlow 2s infinite alternate;
+    }
+    
+    h2 {
+      color: var(--secondary);
+      font-size: 1.5rem;
+    }
+    
+    .fase {
+      display: none;
+      padding: 30px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      background-color: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transform: scale(0.95);
+      transition: all 0.5s ease;
+      opacity: 0;
+    }
+    
+    .fase.ativa {
+      display: block;
+      transform: scale(1);
+      opacity: 1;
+      animation: fadeIn 0.5s forwards;
+    }
+    
+    p {
+      margin-bottom: 15px;
+      line-height: 1.6;
+    }
+    
+    .dica {
+      font-style: italic;
+      color: var(--secondary);
+      background-color: rgba(25, 42, 86, 0.3);
+      padding: 10px;
+      border-radius: 5px;
+      border-left: 3px solid var(--secondary);
+    }
+    
+    .codigo {
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      color: var(--success);
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 10px 15px;
+      border-radius: 5px;
+      display: inline-block;
+      margin: 10px 0;
+      animation: pulse 2s infinite;
+    }
+    
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin: 15px 0;
+      background-color: rgba(255, 255, 255, 0.9);
+      border: 2px solid var(--primary);
+      border-radius: 5px;
+      color: var(--dark);
+      transition: all 0.3s;
+    }
+    
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--success);
+      box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+      transform: scale(1.02);
+    }
+    
+    button {
+      padding: 12px 25px;
+      font-size: 16px;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      margin: 10px 0;
+      transition: all 0.3s;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    button:hover {
+      background: linear-gradient(45deg, var(--secondary), var(--primary));
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+    
+    button:active {
+      transform: translateY(1px);
+    }
+    
+    ul {
+      margin: 20px 0;
+      padding-left: 20px;
+    }
+    
+    li {
+      margin-bottom: 10px;
+    }
+    
+    .timer {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: rgba(231, 76, 60, 0.8);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 50px;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 0.8rem;
+      box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
+      z-index: 100;
+      display: none;
+    }
+    
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #f00;
+      opacity: 0;
+      z-index: 10;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      background-color: var(--primary);
+      color: white;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      margin-right: 5px;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes titleGlow {
+      from { text-shadow: 0 0 10px rgba(46, 204, 113, 0.5); }
+      to { text-shadow: 0 0 20px rgba(46, 204, 113, 0.8), 0 0 30px rgba(46, 204, 113, 0.6); }
+    }
+    
+    @keyframes borderGlow {
+      from { box-shadow: 0 0 10px rgba(52, 152, 219, 0.5); }
+      to { box-shadow: 0 0 20px rgba(52, 152, 219, 0.8), 0 0 30px rgba(52, 152, 219, 0.6); }
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      h2 {
+        font-size: 1.2rem;
+      }
+      
+      .container {
+        padding: 15px;
+      }
+      
+      .fase {
+        padding: 20px;
+      }
+      
+      .timer {
+        font-size: 0.7rem;
+        padding: 8px 12px;
+      }
+    }
+    
+    /* Special effects for phases */
+    #fase0 {
+      background: rgba(41, 128, 185, 0.2);
+    }
+    
+    #fase1 {
+      background: rgba(155, 89, 182, 0.2);
+    }
+    
+    #fase2 {
+      background: rgba(39, 174, 96, 0.2);
+    }
+    
+    #fase3 {
+      background: rgba(243, 156, 18, 0.2);
+    }
+    
+    #fase4 {
+      background: rgba(192, 57, 43, 0.2);
+    }
+    
+    #fase5 {
+      background: rgba(41, 128, 185, 0.3);
+      text-align: center;
+    }
+    
+    /* Character animation */
+    .character {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      z-index: -1;
+      opacity: 0.7;
+    }
+    
+    .hacker {
+      background-image: url('https://cdn-icons-png.flaticon.com/512/2933/2933245.png');
+      bottom: 20px;
+      right: 20px;
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    .detective {
+      background-image: url('https://cdn-icons-png.flaticon.com/512/3940/3940403.png');
+      top: 20px;
+      left: 20px;
+      animation: float 3.5s ease-in-out infinite 0.5s;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+    
+    /* Progress bar */
+    .progress-container {
+      width: 100%;
+      height: 10px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border-radius: 5px;
+      transition: width 0.5s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="timer" id="timer">10:00</div>
+  
+  <div class="character hacker"></div>
+  <div class="character detective"></div>
+  
+  <div class="container">
+    <h1>🔐 ESCAPE ROOM: O CÓDIGO DAS PERMUTAÇÕES</h1>
+    
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    
+    <div id="fase0" class="fase ativa">
+      <h2>🕵️‍♂️ MISSÃO: AGENTES DA SEGURANÇA MATEMÁTICA</h2>
+      <p>Uma organização hacker chamada <span class="badge">The Permutation</span> está prestes a lançar um ataque cibernético global. Eles deixaram pistas baseadas em princípios de permutação.</p>
+      <p>Você e sua equipe de elite têm <strong class="codigo">10 minutos</strong> para decifrar os códigos e impedir o ataque!</p>
+      <p>Cada fase contém um desafio matemático. Resolva corretamente para avançar.</p>
+      <button onclick="startMission()">ACEITAR MISSÃO</button>
+    </div>
+
+    <div id="fase1" class="fase">
+      <h2>🎟️ FASE 1: CRACHÁS MISTURADOS</h2>
+      <p>Você encontrou três crachás de acesso com os nomes: <strong class="codigo">ANA, LEO e BIA</strong>.</p>
+      <p>Para acessar o primeiro sistema, descubra de quantas maneiras diferentes podemos organizar esses três crachás em sequência.</p>
+      <p class="dica">💡 Dica: Use fatorial.</p>
+      <input type="text" id="resposta1" placeholder="Digite o número de permutações possíveis">
+      <button onclick="verificarResposta(1, '6')">VERIFICAR CÓDIGO</button>
+    </div>
+
+    <div id="fase2" class="fase">
+      <h2>💼 FASE 2: ORGANIZAÇÃO DOS LIVROS</h2>
+      <p>Você encontrou uma estante com <strong class="codigo">5 livros diferentes</strong> sobre criptografia.</p>
+      <p>Quantas ordens diferentes existem para organizar esses livros na estante?</p>
+      <p class="dica">💡 Dica: Use fatorial.</p>
+      <input type="text" id="resposta2" placeholder="Digite o número de permutações possíveis">
+      <button onclick="verificarResposta(2, '120')">VERIFICAR CÓDIGO</button>
+    </div>
+
+    <div id="fase3" class="fase">
+      <h2>⛔️ FASE 3: PERMUTAÇÃO COM RESTRIÇÃO</h2>
+      <p>Você encontrou um terminal protegido pela palavra-chave <strong class="codigo">LUZ</strong>.</p>
+      <p>O sistema bloqueou todas as combinações que começam com a letra <strong class="codigo">L</strong>. Quantas permutações válidas restam?</p>
+      <p class="dica">💡 Dica: Use fatorial.</p>
+      <input type="text" id="resposta3" placeholder="Digite o número de permutações válidas">
+      <button onclick="verificarResposta(3, '4')">VERIFICAR CÓDIGO</button>
+    </div>
+
+    <div id="fase4" class="fase">
+      <h2>✅ REVISÃO FINAL</h2>
+      <p>Você está prestes a acessar o sistema principal. Combine os códigos das fases anteriores na ordem inversa:</p>
+      <p>Fase 3 + Fase 2 + Fase 1</p>
+      <p class="codigo">CÓDIGO FINAL: 4 120 6</p>
+      <p>Insira este código no terminal principal para desativar o ataque cibernético!</p>
+      <button onclick="proximaFase(); triggerConfetti();">DESATIVAR SISTEMA</button>
+    </div>
+
+    <div id="fase5" class="fase">
+      <h2>🏁 MISSÃO CUMPRIDA!</h2>
+      <p>Vocês conseguiram! O ataque cibernético foi impedido com sucesso! 🎉</p>
+      <p>Tempo restante: <span id="tempoRestante" class="codigo"></span></p>
+      
+      <div style="margin: 30px 0;">
+        <p>Reflexão da equipe:</p>
+        <ul>
+          <li>📌 Qual desafio foi mais difícil e por quê?</li>
+          <li>🔍 Que estratégias ajudaram sua equipe a resolver os problemas?</li>
+          <li>🎓 O que você aprendeu sobre permutações hoje?</li>
+          <li>💡 Como você pode aplicar esse conhecimento em outras situações?</li>
+        </ul>
+      </div>
+      
+      <button onclick="resetGame()">JOGAR NOVAMENTE</button>
+    </div>
+  </div>
+
+  <script>
+    let faseAtual = 0;
+    let timeLeft = 10 * 60; // 10 minutes in seconds
+    let timerInterval;
+    const totalFases = 5;
+    let timerStarted = false;
+    
+    // Initialize phases and progress bar
+    document.addEventListener('DOMContentLoaded', function() {
+      updateProgressBar();
+    });
+    
+    function startMission() {
+      if (!timerStarted) {
+        timerStarted = true;
+        document.getElementById('timer').style.display = 'block';
+        startTimer();
+        proximaFase();
+      }
+    }
+    
+    function proximaFase() {
+      document.getElementById(`fase${faseAtual}`).classList.remove("ativa");
+      faseAtual++;
+      document.getElementById(`fase${faseAtual}`).classList.add("ativa");
+      updateProgressBar();
+      
+      // Scroll to top of the phase
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+    
+    function verificarResposta(fase, respostaCerta) {
+      const input = document.getElementById(`resposta${fase}`);
+      if (input.value.trim() === respostaCerta) {
+        // Correct answer
+        playSound('correct');
+        proximaFase();
+      } else {
+        // Wrong answer
+        playSound('wrong');
+        input.style.borderColor = 'var(--danger)';
+        input.style.boxShadow = '0 0 10px rgba(231, 76, 60, 0.5)';
+        setTimeout(() => {
+          input.style.borderColor = 'var(--primary)';
+          input.style.boxShadow = 'none';
+        }, 1000);
+        alert("🚨 Código incorreto! Tente novamente.");
+      }
+    }
+    
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+    
+    function updateTimer() {
+      timeLeft--;
+      
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        document.getElementById('timer').textContent = "TEMPO ESGOTADO!";
+        alert("⏰ Tempo esgotado! O ataque cibernético foi lançado.");
+        return;
+      }
+      
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      document.getElementById('timer').textContent = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      // Change color when time is running out
+      if (timeLeft < 2 * 60) { // 2 minutes left
+        document.getElementById('timer').style.backgroundColor = 'rgba(230, 126, 34, 0.8)';
+      }
+      if (timeLeft < 1 * 60) { // 1 minute left
+        document.getElementById('timer').style.backgroundColor = 'rgba(231, 76, 60, 0.8)';
+        document.getElementById('timer').style.animation = 'pulse 0.5s infinite alternate';
+      }
+    }
+    
+    function updateProgressBar() {
+      const progress = (faseAtual / totalFases) * 100;
+      document.getElementById('progressBar').style.width = `${progress}%`;
+    }
+    
+    function triggerConfetti() {
+      playSound('win');
+      // Display remaining time
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      document.getElementById('tempoRestante').textContent = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      // Create confetti
+      for (let i = 0; i < 100; i++) {
+        createConfetti();
+      }
+    }
+    
+    function createConfetti() {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      
+      // Random properties
+      const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const size = Math.random() * 10 + 5;
+      const posX = Math.random() * window.innerWidth;
+      const animDuration = Math.random() * 3 + 2;
+      
+      confetti.style.left = `${posX}px`;
+      confetti.style.top = '-10px';
+      confetti.style.backgroundColor = color;
+      confetti.style.width = `${size}px`;
+      confetti.style.height = `${size}px`;
+      confetti.style.borderRadius = size > 8 ? '50%' : '0';
+      confetti.style.opacity = '1';
+      
+      // Random shape
+      if (Math.random() > 0.5) {
+        confetti.style.borderRadius = '0';
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+      }
+      
+      document.body.appendChild(confetti);
+      
+      // Animation
+      const anim = confetti.animate([
+        { top: '-10px', opacity: 1, transform: 'rotate(0deg)' },
+        { top: `${window.innerHeight}px`, opacity: 0, transform: `rotate(${Math.random() * 360}deg)` }
+      ], {
+        duration: animDuration * 1000,
+        easing: 'cubic-bezier(0.1, 0.8, 0.9, 1)'
+      });
+      
+      anim.onfinish = () => confetti.remove();
+    }
+    
+    function playSound(type) {
+      // In a real implementation, you would play actual sound files here
+      console.log(`Playing ${type} sound`);
+    }
+    
+    function resetGame() {
+      faseAtual = 0;
+      timeLeft = 10 * 60;
+      timerStarted = false;
+      
+      // Reset all phases
+      document.querySelectorAll('.fase').forEach(fase => {
+        fase.classList.remove('ativa');
+      });
+      document.getElementById('fase0').classList.add('ativa');
+      
+      // Reset inputs
+      document.querySelectorAll('input').forEach(input => {
+        input.value = '';
+      });
+      
+      // Reset timer
+      document.getElementById('timer').textContent = '10:00';
+      document.getElementById('timer').style.backgroundColor = 'rgba(231, 76, 60, 0.8)';
+      document.getElementById('timer').style.animation = 'none';
+      document.getElementById('timer').style.display = 'none';
+      
+      // Reset progress bar
+      updateProgressBar();
+      
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>
